@@ -28,14 +28,18 @@ fn sum_coors(img: &DynamicImage) -> (u32, u32) {
 
 // To-do: change this so that pixels can be moved to the left too (maybe ask stackoverflow).
 // The value should be inverted (-) so the final x_avg becomes 0.
-fn move_pixels_right(img: &DynamicImage, shift: u32) -> DynamicImage {
+fn move_pixels(img: &DynamicImage, shift: i32) -> DynamicImage {
     let (width, height) = img.dimensions();
     let mut new_img = ImageBuffer::new(width, height);
 
     for y in 0..height {
-        for x in shift..width {
-            let pixel = img.get_pixel(x - shift, y);
-            new_img.put_pixel(x, y, pixel);
+        let left = i32::max(0, shift);
+        let right = i32::min(0, shift) + width as i32;
+
+        for x in left..right {
+            let pixel = img.get_pixel((x - shift) as u32, y);
+
+            new_img.put_pixel(x as u32, y, pixel);
         }
     }
 
@@ -48,7 +52,7 @@ fn main() {
     let (x_sum, _) = sum_coors(&img);
     let x_avg = x_sum as f64 / pixel_count as f64;
 
-    let moved_img = move_pixels_right(&img, 1);
+    let moved_img = move_pixels(&img, -1);
 
     moved_img.save("moved.png").unwrap();
 
