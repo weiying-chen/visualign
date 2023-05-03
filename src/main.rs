@@ -12,22 +12,20 @@ fn count_pixels(img: &DynamicImage) -> u32 {
     count
 }
 
-fn sum_coors(img: &DynamicImage) -> (u32, u32) {
-    let mut x_sum = 0;
-    let mut y_sum = 0;
+fn sum_coors(img: &DynamicImage) -> (u64, u64) {
+    let mut x_sum = 0u64;
+    let mut y_sum = 0u64;
 
     for (x, y, pixel) in img.pixels() {
         if pixel[3] != 0 {
-            x_sum += x;
-            y_sum += y;
+            x_sum += x as u64;
+            y_sum += y as u64;
         }
     }
 
     (x_sum, y_sum)
 }
 
-// To-do: change this so that pixels can be moved to the left too (maybe ask stackoverflow).
-// The value should be inverted (-) so the final x_avg becomes 0.
 fn move_pixels(img: &DynamicImage, shift: i32) -> DynamicImage {
     let (width, height) = img.dimensions();
     let mut new_img = ImageBuffer::new(width, height);
@@ -46,16 +44,29 @@ fn move_pixels(img: &DynamicImage, shift: i32) -> DynamicImage {
     DynamicImage::ImageRgba8(new_img)
 }
 
+fn get_image_center(img: &DynamicImage) -> (u32, u32) {
+    let (width, height) = img.dimensions();
+    let x_center = width / 2;
+    let y_center = height / 2;
+
+    (x_center, y_center)
+}
+
 fn main() {
-    let img = image::open("center.png").unwrap();
+    let img = image::open("input.png").unwrap();
     let pixel_count = count_pixels(&img);
     let (x_sum, _) = sum_coors(&img);
+    let (x_center, _) = get_image_center(&img);
     let x_avg = x_sum as f64 / pixel_count as f64;
+    let shift = x_center as f64 - x_avg;
 
-    let moved_img = move_pixels(&img, -1);
+    // let shifted_img = move_pixels(&img, -shift as i32);
+    let shifted_img = move_pixels(&img, shift.round() as i32);
 
-    moved_img.save("moved.png").unwrap();
+    shifted_img.save("output.png").unwrap();
 
-    println!("Number of non-transparent pixels: {}", pixel_count);
-    println!("Average position of x: {}", x_avg);
+    println!("pixel_count: {}", pixel_count);
+    println!("x_center: {}", x_center);
+    println!("x_avg: {}", x_avg);
+    println!("shift: {}", shift.round() as i32);
 }
