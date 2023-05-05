@@ -1,5 +1,6 @@
 use image::imageops;
-use std::fs;
+use image::{ImageBuffer, Pixel};
+use std::{fs::File, io::BufWriter};
 use visual_center::img_processor::ImgProcessor;
 
 fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
@@ -15,27 +16,80 @@ fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
 }
 
 fn main() {
-    // Read the contents of the input folder
     let input_dir = "./input";
-    let entries = fs::read_dir(input_dir).unwrap();
+    let entries = std::fs::read_dir(input_dir).unwrap();
     let text_img = image::open("text.png").unwrap();
 
-    // Iterate over the directory entries
     for entry in entries {
         let path = entry.unwrap().path();
 
-        // Only process image files
         if let Some("png") = path.extension().and_then(|s| s.to_str()) {
-            // Load the input image and text image
             let input_img = image::open(&path).unwrap();
-
-            // Apply the operation to the input image
             let mut shifted_img = visual_center(input_img);
+
             imageops::overlay(&mut shifted_img, &text_img, 0, 0);
 
-            // Save the result to an output file
             let output_path = format!("./output/{}", path.file_name().unwrap().to_str().unwrap());
-            shifted_img.save(&output_path).unwrap();
+            let output_file = std::fs::File::create(&output_path).unwrap();
+
+            save_png_with_dpi(output_file, &shifted_img.into_rgba8(), 300).unwrap();
         }
     }
+}
+
+/// Writes the PNG image data to the given `file` and assigns the given
+/// `dpi` to the image.
+///
+/// Arguments:
+///
+/// * `file`: The file to which the image data is written.
+/// * `imgbuf`: The [ImageBuffer] containing the unencoded image data.
+/// * `dpi`: The **dots per inch** which will be assigned to the image.
+///
+/// Returns:
+///
+/// A [Result<(), std::io::Error>] indicating if the operation was successful.
+fn save_png_with_dpi<P>(
+    file: File,
+    imgbuf: &ImageBuffer<P, Vec<u8>>,
+    dpi: u32,
+) -> Result<(), std::io::Error>
+where
+    P: Pixel<Subpixel = u8>,
+{
+    let w = &mut BufWriter::new(file);
+    let mut encoder = png::Encoder::new(w, 4500, 5400);
+
+    encoder.set_color(png::ColorType::Rgb);
+    encoder.set_depth(png::BitDepth::Eight);
+    encoder.set_compression(png::Compression::Best);
+
+    let mut writer = encoder.write_header()?;
+    let data = get_dpi_header_data(dpi);
+
+    writer.write_chunk(png::chunk::pHYs, data.as_slice())?;
+
+    writer.write_image_data(imgbuf)?;
+
+    Ok(())
+}
+
+/// Converts the given `dpi` value to the appropriate _pHYs_ chunk data.
+///
+/// Arguments:
+///
+/// * `dpi`: The **dots per inch** of the image.
+///
+/// Returns:
+///
+/// A [Vec<u8>] with the encoded chunk data.
+fn get_dpi_header_data(dpi: u32) -> Vec<u8> {
+    let dpm = 39.370079 * dpi as f32; // Convert from dots per inch to dots per meter.
+    let rounded_dpm = dpm.round() as u32;
+    let mut data: Vec<u8> = Vec::new();
+
+    data.extend_from_slice(&rounded_dpm.to_be_bytes()); // Pixels per unit in X-direction.
+    data.extend_from_slice(&rounded_dpm.to_be_bytes()); // Pixels per unit in Y-direction.
+    data.push(1); // Indicate that meters are used as unit.
+    data
 }
