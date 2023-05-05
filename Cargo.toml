@@ -1,5 +1,5 @@
 [package]
-name = "center"
+name = "visual_center"
 version = "0.1.0"
 edition = "2021"
 

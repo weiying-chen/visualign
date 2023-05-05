@@ -1,69 +1,8 @@
-use image::{DynamicImage, GenericImageView, ImageBuffer};
+use image::imageops;
+use std::fs;
+use visual_center::img_processor::ImgProcessor;
 
-struct ImgProcessor {
-    img: DynamicImage,
-}
-
-impl ImgProcessor {
-    fn new(img: DynamicImage) -> Self {
-        Self { img }
-    }
-
-    fn count_pixels(&self) -> u32 {
-        let mut count = 0;
-
-        for (_, _, pixel) in self.img.pixels() {
-            if pixel[3] != 0 {
-                count += 1;
-            }
-        }
-
-        count
-    }
-
-    fn sum_coors(&self) -> (u64, u64) {
-        let mut x_sum = 0u64;
-        let mut y_sum = 0u64;
-
-        for (x, y, pixel) in self.img.pixels() {
-            if pixel[3] != 0 {
-                x_sum += x as u64;
-                y_sum += y as u64;
-            }
-        }
-
-        (x_sum, y_sum)
-    }
-
-    fn move_pixels(&self, shift: i32) -> DynamicImage {
-        let (width, height) = self.img.dimensions();
-        let mut new_img = ImageBuffer::new(width, height);
-
-        for y in 0..height {
-            let left = i32::max(0, shift);
-            let right = i32::min(0, shift) + width as i32;
-
-            for x in left..right {
-                let pixel = self.img.get_pixel((x - shift) as u32, y);
-
-                new_img.put_pixel(x as u32, y, pixel);
-            }
-        }
-
-        DynamicImage::ImageRgba8(new_img)
-    }
-
-    fn get_image_center(&self) -> (u32, u32) {
-        let (width, height) = self.img.dimensions();
-        let x_center = width / 2;
-        let y_center = height / 2;
-
-        (x_center, y_center)
-    }
-}
-
-fn main() {
-    let img = image::open("input.png").unwrap();
+fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
     let img_processor = ImgProcessor::new(img);
     let pixel_count = img_processor.count_pixels();
     let (x_sum, _) = img_processor.sum_coors();
@@ -72,10 +11,31 @@ fn main() {
     let shift = x_center as f64 - x_avg;
     let shifted_img = img_processor.move_pixels(shift.round() as i32);
 
-    shifted_img.save("output.png").unwrap();
+    shifted_img
+}
 
-    println!("pixel_count: {}", pixel_count);
-    println!("x_center: {}", x_center);
-    println!("x_avg: {}", x_avg);
-    println!("shift: {}", shift.round() as i32);
+fn main() {
+    // Read the contents of the input folder
+    let input_dir = "./input";
+    let entries = fs::read_dir(input_dir).unwrap();
+    let text_img = image::open("text.png").unwrap();
+
+    // Iterate over the directory entries
+    for entry in entries {
+        let path = entry.unwrap().path();
+
+        // Only process image files
+        if let Some("png") = path.extension().and_then(|s| s.to_str()) {
+            // Load the input image and text image
+            let input_img = image::open(&path).unwrap();
+
+            // Apply the operation to the input image
+            let mut shifted_img = visual_center(input_img);
+            imageops::overlay(&mut shifted_img, &text_img, 0, 0);
+
+            // Save the result to an output file
+            let output_path = format!("./output/{}", path.file_name().unwrap().to_str().unwrap());
+            shifted_img.save(&output_path).unwrap();
+        }
+    }
 }
