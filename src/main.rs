@@ -58,9 +58,20 @@ where
     P: Pixel<Subpixel = u8>,
 {
     let w = &mut BufWriter::new(file);
-    let mut encoder = png::Encoder::new(w, 4500, 5400);
+    let (width, height) = imgbuf.dimensions();
+    let mut encoder = png::Encoder::new(w, width, height);
 
-    encoder.set_color(png::ColorType::Rgb);
+    match <P as Pixel>::CHANNEL_COUNT {
+        4 => encoder.set_color(png::ColorType::Rgba),
+        3 => encoder.set_color(png::ColorType::Rgb),
+        _ => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Incorrect color channel count / format.",
+            ))
+        }
+    }
+
     encoder.set_depth(png::BitDepth::Eight);
     encoder.set_compression(png::Compression::Best);
 
@@ -68,9 +79,7 @@ where
     let data = get_dpi_header_data(dpi);
 
     writer.write_chunk(png::chunk::pHYs, data.as_slice())?;
-
     writer.write_image_data(imgbuf)?;
-
     Ok(())
 }
 
@@ -86,10 +95,11 @@ where
 fn get_dpi_header_data(dpi: u32) -> Vec<u8> {
     let dpm = 39.370079 * dpi as f32; // Convert from dots per inch to dots per meter.
     let rounded_dpm = dpm.round() as u32;
-    let mut data: Vec<u8> = Vec::new();
 
+    let mut data: Vec<u8> = Vec::new();
     data.extend_from_slice(&rounded_dpm.to_be_bytes()); // Pixels per unit in X-direction.
     data.extend_from_slice(&rounded_dpm.to_be_bytes()); // Pixels per unit in Y-direction.
+
     data.push(1); // Indicate that meters are used as unit.
     data
 }
