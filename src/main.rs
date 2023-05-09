@@ -16,6 +16,9 @@ fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
 
 fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
     for name in array {
+        println!("string: {}", string);
+        println!("name: {}", name);
+        println!("==");
         if string.contains(name) {
             return Some(name);
         }
@@ -37,6 +40,8 @@ fn main() {
         "cream_french_bulldog",
         "dachshund",
         "english_bulldog",
+        "french_bulldog",
+        "german_shepherd",
         "goldendoodle",
         "havanese",
         "husky",
