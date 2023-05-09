@@ -20,6 +20,27 @@ fn main() {
     let entries = std::fs::read_dir(input_dir).unwrap();
     let text_img = image::open("text.png").unwrap();
 
+    let names = [
+        "beagle",
+        "bernese_mountain_dog",
+        "boston_terrier",
+        "brittany_spaniel",
+        "corgi",
+        "cream_french_bulldog",
+        "dachshund",
+        "english_bulldog",
+        "goldendoodle",
+        "havanese",
+        "husky",
+        "jack_russell_terrier",
+        "miniature_pinscher",
+        "rottweiler",
+        "samoyed",
+        "shiba_inu",
+        "schnauzer",
+        "westie",
+    ];
+
     for entry in entries {
         let path = entry.unwrap().path();
 
@@ -29,7 +50,8 @@ fn main() {
 
             imageops::overlay(&mut shifted_img, &text_img, 0, 0);
 
-            let output_path = format!("./output/{}", path.file_name().unwrap().to_str().unwrap());
+            let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
+            let output_path = format!("./output/{}.png", extracted_name.unwrap());
             let output_file = std::fs::File::create(&output_path).unwrap();
 
             save_png_with_dpi(output_file, &shifted_img.into_rgba8(), 300).unwrap();
@@ -102,4 +124,13 @@ fn get_dpi_header_data(dpi: u32) -> Vec<u8> {
 
     data.push(1); // Indicate that meters are used as unit.
     data
+}
+
+fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
+    for name in array {
+        if string.contains(name) {
+            return Some(name);
+        }
+    }
+    None
 }
