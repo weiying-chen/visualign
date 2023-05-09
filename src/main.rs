@@ -14,6 +14,15 @@ fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
     shifted_img
 }
 
+fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
+    for name in array {
+        if string.contains(name) {
+            return Some(name);
+        }
+    }
+    None
+}
+
 fn main() {
     let input_dir = "./input";
     let entries = std::fs::read_dir(input_dir).unwrap();
@@ -51,18 +60,9 @@ fn main() {
 
             let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
             let output_path = format!("./output/{}.png", extracted_name.unwrap());
-            let output_file = std::fs::File::create(&output_path).unwrap();
+            let file = std::fs::File::create(&output_path).unwrap();
 
-            img_util::save_png_with_dpi(&shifted_img.into_rgba8(), output_file, 300).unwrap();
+            img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
         }
     }
-}
-
-fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
-    for name in array {
-        if string.contains(name) {
-            return Some(name);
-        }
-    }
-    None
 }

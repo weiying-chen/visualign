@@ -28,15 +28,15 @@ fn get_dpi_header_data(dpi: u32) -> Vec<u8> {
 }
 
 pub fn save_png_with_dpi<P>(
-    input_img: &ImageBuffer<P, Vec<u8>>,
-    output_img: File,
+    img_buffer: &ImageBuffer<P, Vec<u8>>,
+    file: File,
     dpi: u32,
 ) -> Result<(), std::io::Error>
 where
     P: Pixel<Subpixel = u8>,
 {
-    let w = &mut BufWriter::new(output_img);
-    let (width, height) = input_img.dimensions();
+    let w = &mut BufWriter::new(file);
+    let (width, height) = img_buffer.dimensions();
     let mut encoder = png::Encoder::new(w, width, height);
 
     encoder.set_color(get_color_type::<P>()?);
@@ -47,6 +47,6 @@ where
     let mut writer = encoder.write_header()?;
 
     writer.write_chunk(png::chunk::pHYs, data.as_slice())?;
-    writer.write_image_data(input_img)?;
+    writer.write_image_data(img_buffer)?;
     Ok(())
 }
