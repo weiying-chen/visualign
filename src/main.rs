@@ -1,3 +1,6 @@
+use std::env;
+use std::path::PathBuf;
+
 use image::imageops;
 use visual_center::img_processor::ImgProcessor;
 use visual_center::img_util;
@@ -24,9 +27,14 @@ fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
 }
 
 fn main() {
-    let input_dir = "./input";
-    let entries = std::fs::read_dir(input_dir).unwrap();
-    let text_img = image::open("text.png").unwrap();
+    let curr_dir = "/home/alex/Desktop";
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let mut root_dir = PathBuf::from(manifest_dir);
+
+    root_dir.push("text.png");
+
+    let text_img = image::open(root_dir).unwrap();
+    let entries = std::fs::read_dir(curr_dir).unwrap();
 
     let names = [
         "beagle",
@@ -63,7 +71,7 @@ fn main() {
             let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
 
             let output_path = match extracted_name {
-                Some(name) => format!("./output/{}.png", name),
+                Some(name) => format!("{}/{}.png", curr_dir, name),
                 None => {
                     println!("None returned for file: {:?}", path);
                     continue;
