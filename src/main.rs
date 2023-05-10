@@ -16,9 +16,6 @@ fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
 
 fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
     for name in array {
-        println!("string: {}", string);
-        println!("name: {}", name);
-        println!("==");
         if string.contains(name) {
             return Some(name);
         }
@@ -64,7 +61,15 @@ fn main() {
             imageops::overlay(&mut shifted_img, &text_img, 0, 0);
 
             let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
-            let output_path = format!("./output/{}.png", extracted_name.unwrap());
+
+            let output_path = match extracted_name {
+                Some(name) => format!("./output/{}.png", name),
+                None => {
+                    println!("None returned for file: {:?}", path);
+                    continue;
+                }
+            };
+
             let file = std::fs::File::create(&output_path).unwrap();
 
             img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
