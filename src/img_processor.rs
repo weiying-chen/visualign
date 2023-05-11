@@ -13,7 +13,9 @@ impl ImgProcessor {
         let mut count = 0;
 
         for (_, _, pixel) in self.img.pixels() {
-            if pixel[3] != 0 {
+            let alpha = pixel[3];
+
+            if alpha != 0 {
                 count += 1;
             }
         }
