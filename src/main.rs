@@ -45,7 +45,7 @@ fn main() {
         "cream_french_bulldog",
         "dachshund",
         "english_bulldog",
-        "french_bulldog",
+        "black_french_bulldog",
         "german_shepherd",
         "goldendoodle",
         "havanese",
@@ -56,7 +56,7 @@ fn main() {
         "samoyed",
         "shiba_inu",
         "schnauzer",
-        "westie",
+        "west_highland_white_terrier",
     ];
 
     for entry in entries {
@@ -67,6 +67,7 @@ fn main() {
             let mut shifted_img = visual_center(input_img);
 
             imageops::overlay(&mut shifted_img, &text_img, 0, 0);
+            // imageops::overlay(&mut text_img, &shifted_img, 0, 0);
 
             let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
 
@@ -81,6 +82,7 @@ fn main() {
             let file = std::fs::File::create(&output_path).unwrap();
 
             img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
+            // img_util::save_png_with_dpi(&text_img.clone().into_rgba8(), file, 300).unwrap();
         }
     }
 }
