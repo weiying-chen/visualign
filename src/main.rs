@@ -64,10 +64,11 @@ fn main() {
 
         if let Some("png") = path.extension().and_then(|s| s.to_str()) {
             let input_img = image::open(&path).unwrap();
-            let mut shifted_img = visual_center(input_img);
+            let shifted_img = visual_center(input_img);
+            let mut text_img = text_img.clone();
 
-            imageops::overlay(&mut shifted_img, &text_img, 0, 0);
-            // imageops::overlay(&mut text_img, &shifted_img, 0, 0);
+            // imageops::overlay(&mut shifted_img, &text_img, 0, 0);
+            imageops::overlay(&mut text_img, &shifted_img, 0, 0);
 
             let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
 
@@ -81,8 +82,8 @@ fn main() {
 
             let file = std::fs::File::create(&output_path).unwrap();
 
-            img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
-            // img_util::save_png_with_dpi(&text_img.clone().into_rgba8(), file, 300).unwrap();
+            // img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
+            img_util::save_png_with_dpi(&text_img.into_rgba8(), file, 300).unwrap();
         }
     }
 }
