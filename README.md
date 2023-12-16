@@ -4,7 +4,7 @@ Visually Center images.
 
 ![](https://github.com/weiying-chen/command-launcher/blob/main/demo.gif)
 
-## Note
+## Notes
 
 - Only tested on Linux.
 - Only horizontal centering supported.
