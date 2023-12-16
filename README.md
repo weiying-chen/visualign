@@ -2,7 +2,7 @@
 
 Visually center images.
 
-![](https://github.com/weiying-chen/visualign/blob/main/demo.png)
+![](https://github.com/weiying-chen/visualign/blob/main/sample.png)
 
 ## Notes
 
