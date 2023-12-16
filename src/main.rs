@@ -1,7 +1,5 @@
 use std::env;
 use std::path::PathBuf;
-
-use image::imageops;
 use visual_center::img_processor::ImgProcessor;
 use visual_center::img_util;
 
@@ -17,47 +15,15 @@ fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
     shifted_img
 }
 
-fn extract_name<'a>(array: &'a [&'a str], string: &'a str) -> Option<&'a str> {
-    for name in array {
-        if string.contains(name) {
-            return Some(name);
-        }
-    }
-    None
-}
-
 fn main() {
-    let curr_dir = "/home/alex/Desktop";
+    // Change this to the dir containing your images.
+    const DIR: &str = "/home/alex/Desktop";
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let mut root_dir = PathBuf::from(manifest_dir);
 
     root_dir.push("text.png");
 
-    let text_img = image::open(root_dir).unwrap();
-    let entries = std::fs::read_dir(curr_dir).unwrap();
-
-    let names = [
-        "beagle",
-        "bernese_mountain_dog",
-        "boston_terrier",
-        "brittany_spaniel",
-        "corgi",
-        "cream_french_bulldog",
-        "dachshund",
-        "english_bulldog",
-        "black_french_bulldog",
-        "german_shepherd",
-        "goldendoodle",
-        "havanese",
-        "husky",
-        "jack_russell_terrier",
-        "miniature_pinscher",
-        "rottweiler",
-        "samoyed",
-        "shiba_inu",
-        "schnauzer",
-        "west_highland_white_terrier",
-    ];
+    let entries = std::fs::read_dir(DIR).unwrap();
 
     for entry in entries {
         let path = entry.unwrap().path();
@@ -65,25 +31,12 @@ fn main() {
         if let Some("png") = path.extension().and_then(|s| s.to_str()) {
             let input_img = image::open(&path).unwrap();
             let shifted_img = visual_center(input_img);
-            let mut text_img = text_img.clone();
-
-            // imageops::overlay(&mut shifted_img, &text_img, 0, 0);
-            imageops::overlay(&mut text_img, &shifted_img, 0, 0);
-
-            let extracted_name = extract_name(&names, path.file_name().unwrap().to_str().unwrap());
-
-            let output_path = match extracted_name {
-                Some(name) => format!("{}/{}.png", curr_dir, name),
-                None => {
-                    println!("None returned for file: {:?}", path);
-                    continue;
-                }
-            };
-
+            let filename = path.file_stem().unwrap().to_string_lossy();
+            let output_path = format!("{}/{}_aligned.png", DIR, filename);
             let file = std::fs::File::create(&output_path).unwrap();
+            const DPI: u32 = 300;
 
-            // img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, 300).unwrap();
-            img_util::save_png_with_dpi(&text_img.into_rgba8(), file, 300).unwrap();
+            img_util::save_png_with_dpi(&shifted_img.into_rgba8(), file, DPI).unwrap();
         }
     }
 }
