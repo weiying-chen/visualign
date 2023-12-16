@@ -32,7 +32,7 @@ fn main() {
             let input_img = image::open(&path).unwrap();
             let shifted_img = visual_center(input_img);
             let filename = path.file_stem().unwrap().to_string_lossy();
-            let output_path = format!("{}/{}_aligned.png", DIR, filename);
+            let output_path = format!("{}/{}_centered.png", DIR, filename);
             let file = std::fs::File::create(&output_path).unwrap();
             const DPI: u32 = 300;
 

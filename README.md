@@ -1,8 +1,8 @@
 # Visualign
 
-Visually Center images.
+Visually center images.
 
-![](https://github.com/weiying-chen/command-launcher/blob/main/demo.gif)
+![](https://github.com/weiying-chen/visualign/blob/main/demo.png)
 
 ## Notes
 
