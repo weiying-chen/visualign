@@ -1,7 +1,7 @@
 use std::env;
 use std::path::PathBuf;
-use visual_center::img_processor::ImgProcessor;
-use visual_center::img_util;
+use visualign::img_processor::ImgProcessor;
+use visualign::img_util;
 
 fn visual_center(img: image::DynamicImage) -> image::DynamicImage {
     let img_processor = ImgProcessor::new(img);
